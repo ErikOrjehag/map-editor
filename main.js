@@ -3,7 +3,7 @@
 const iconScale = 0.6;
 
 var flagIcon = L.icon({
-    iconUrl: 'flag-icon.png',
+    iconUrl: 'img/flag-icon.png',
     iconSize: [64*iconScale, 64*iconScale],
     iconAnchor: [12*iconScale, 63*iconScale],
     popupAnchor: [0*iconScale, -60*iconScale],
@@ -11,21 +11,94 @@ var flagIcon = L.icon({
 
 
 var signIcon = L.icon({
-    iconUrl: 'sign-icon.png',
+    iconUrl: 'img/sign-icon.png',
     iconSize: [64*iconScale, 64*iconScale],
     iconAnchor: [32*iconScale, 63*iconScale],
     popupAnchor: [0*iconScale, -60*iconScale],
 });
 
 var holeIcon = L.icon({
-    iconUrl: 'hole-icon.png',
+    iconUrl: 'img/hole-icon.png',
     iconSize: [64*iconScale, 64*iconScale],
     iconAnchor: [30*iconScale, 63*iconScale],
     popupAnchor: [0*iconScale, -60*iconScale],
 });
 
+L.EditControl = L.Control.extend({
 
-var map = L.map('map').setView([59.3128551, 17.7677114], 18);
+    options: {
+        position: 'topleft',
+        callback: null,
+        kind: '',
+        html: ''
+    },
+
+    onAdd: function (map) {
+        var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar'),
+            link = L.DomUtil.create('a', '', container);
+
+        link.href = '#';
+        link.title = 'Create a new ' + this.options.kind;
+        link.innerHTML = this.options.html;
+        L.DomEvent.on(link, 'click', L.DomEvent.stop)
+                  .on(link, 'click', function () {
+                    window.LAYER = this.options.callback.call(map.editTools);
+                  }, this);
+
+        return container;
+    }
+
+});
+
+var map = L.map('map', {editable: true}).setView([59.3128551, 17.7677114], 18);
+map.doubleClickZoom.disable();
+
+L.NewFlagMarkerControl = L.EditControl.extend({
+    options: {
+        position: 'topleft',
+        callback: map.editTools.startMarker,
+        kind: 'marker',
+        html: 'Flag'
+    }
+});
+
+L.NewSignMarkerControl = L.EditControl.extend({
+    options: {
+        position: 'topleft',
+        callback: map.editTools.startMarker,
+        kind: 'marker',
+        html: 'Sign'
+    }
+});
+
+L.NewHoleMarkerControl = L.EditControl.extend({
+    options: {
+        position: 'topleft',
+        callback: map.editTools.startMarker,
+        kind: 'marker',
+        html: 'Hole'
+    }
+});
+
+L.NewRectangleControl = L.EditControl.extend({
+
+    options: {
+        position: 'topleft',
+        callback: map.editTools.startRectangle,
+        kind: 'rectangle',
+        html: '⬛'
+    }
+
+});
+
+map.addControl(new L.NewFlagMarkerControl());
+map.addControl(new L.NewSignMarkerControl());
+map.addControl(new L.NewHoleMarkerControl());
+map.addControl(new L.NewRectangleControl());
+
+var deleteShape = function (e) {
+    if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey) && this.editEnabled()) map.removeLayer(this);
+};
 
 let token = "pk.eyJ1IjoiZXJpa29yamVoYWciLCJhIjoiY2wwY2hmNG9mMDF4ajNqbXVocTVtaTJhdSJ9.-ESQzyFEAYCwX9z5pThA2w"
 
@@ -55,39 +128,34 @@ function rangeCoordsHandler(rangeCoords) {
     const areas = rangeCoords["areas"];
     const boundary = rangeCoords["boundary"];
     let coords = boundary.map((utm) => L.utm({x: utm["E"], y: utm["N"], zone: 33, band: 'V'}).latLng());
-    L.polygon(coords, {color: 'green'}).addTo(map);
-    coords.forEach((c) => {
-        L.marker(
-            c,
-            { draggable: true, opacity: 0.8 }
-        ).addTo(map);
-    })
+    let poly = L.polygon(coords, {color: 'green'}).addTo(map).on("dblclick", (e) => {
+        poly.toggleEdit();
+    });
     flags.forEach((flag, i) => {
         L.marker(
             L.utm({x: flag["E"], y: flag["N"], zone: 33, band: 'V'}).latLng(),
-            { draggable: true, opacity: 0.8, icon: flagIcon }
-        ).bindPopup(`Flag ${i}`
-        ).addTo(map);
+            { icon: flagIcon }
+        ).addTo(map).on('click', L.DomEvent.stop).on('click', deleteShape).enableEdit();
     });
     signs.forEach((flag, i) => {
         L.marker(
             L.utm({x: flag["E"], y: flag["N"], zone: 33, band: 'V'}).latLng(),
-            { draggable: true, opacity: 0.8, icon: signIcon }
-        ).bindPopup(`Sign ${i}`
-        ).addTo(map);
+            { icon: signIcon }
+        ).addTo(map).on('click', L.DomEvent.stop).on('click', deleteShape).enableEdit();
     });
     holes.forEach((flag, i) => {
         L.marker(
             L.utm({x: flag["E"], y: flag["N"], zone: 33, band: 'V'}).latLng(),
-            { draggable: true, opacity: 0.8, icon: holeIcon }
-        ).bindPopup(`Hole ${i}`
-        ).addTo(map);
+            { icon: holeIcon }
+        ).addTo(map).on('click', L.DomEvent.stop).on('click', deleteShape).enableEdit();
     });
     areas.forEach((area, i) => {
         console.log(area);
         let coords = area.map((utm) => L.utm({x: utm["E"], y: utm["N"], zone: 33, band: 'V'}).latLng());
         console.log(coords);
-        L.polygon(coords, {color: 'red'}).addTo(map);
+        let poly = L.polygon(coords, {color: 'red'}).addTo(map).on("dblclick", (e) => {
+            poly.toggleEdit();
+        });
     });
 }
 
@@ -103,8 +171,7 @@ function coverageAreasHandler(coverageAreas) {
 //     marker = new L.marker(e.latlng, { draggable:'true' });
 //     map.addLayer(marker);
 // };
-
-map.on('click', onMapClick);
+// map.on('click', onMapClick);
 
 function getDroppedJsonFile(event, callbacks) {
     if (!event.dataTransfer.items) {
