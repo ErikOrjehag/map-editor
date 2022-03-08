@@ -216,7 +216,7 @@ function makeCoverageArea(polygon, initialAreaName, angles) {
     });
     polygon.reloxType = RELOX_COVERAGE_AREA;
     polygon.reloxAreaName = initialAreaName || "";
-    polygon.reloxAreaAngles = angles || [];
+    polygon.reloxAreaAngles = angles || [0.0];
 }
 
 function saveRangeCoordsFile() {
