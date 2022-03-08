@@ -7,21 +7,21 @@ const RANGE_COORDS_FILE_NAME = "range_coords.json"
 const COVERAGE_AREAS_FILE_NAME = "coverage_areas.json"
 
 let flagIcon = L.icon({
-    iconUrl: '../img/flag-icon.png',
+    iconUrl: 'flag-icon.png',
     iconSize: [64*ICON_SCALE, 64*ICON_SCALE],
     iconAnchor: [12*ICON_SCALE, 63*ICON_SCALE],
     popupAnchor: [0*ICON_SCALE, -60*ICON_SCALE],
 });
 
 let signIcon = L.icon({
-    iconUrl: '../img/sign-icon.png',
+    iconUrl: 'sign-icon.png',
     iconSize: [64*ICON_SCALE, 64*ICON_SCALE],
     iconAnchor: [32*ICON_SCALE, 63*ICON_SCALE],
     popupAnchor: [0*ICON_SCALE, -60*ICON_SCALE],
 });
 
 let holeIcon = L.icon({
-    iconUrl: '../img/hole-icon.png',
+    iconUrl: 'hole-icon.png',
     iconSize: [64*ICON_SCALE, 64*ICON_SCALE],
     iconAnchor: [30*ICON_SCALE, 63*ICON_SCALE],
     popupAnchor: [0*ICON_SCALE, -60*ICON_SCALE],
