@@ -27,6 +27,19 @@ let holeIcon = L.icon({
     popupAnchor: [0*ICON_SCALE, -60*ICON_SCALE],
 });
 
+var info = L.control();
+info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info');
+    this._div.innerHTML = `
+        <h4>How to use</h4>
+        <p>Toggle edit mode on polygon: double click</p>
+        <p>Delete polygon vertex: click on vertex</p>
+        <p>Delete object: CTRL+click</p>
+    `;
+    return this._div;
+}
+info.addTo(map);
+
 L.EditControl = L.Control.extend({
     options: {
         position: 'topleft',
@@ -149,7 +162,7 @@ const RELOX_RANGE_BOUNDARY = "range-boundary";
 const RELOX_COVERAGE_AREA = "coverage-area";
 
 function deleteShape(e) {
-    if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey) && this.editEnabled()) {
+    if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
         map.removeLayer(this);
         return true;
     }
@@ -294,9 +307,9 @@ function saveCoverageAreasFile() {
     download(JSON.stringify(data, undefined, 4), COVERAGE_AREAS_FILE_NAME, "plain/text");
 }
 
-let token = "pk.eyJ1IjoiZXJpa29yamVoYWciLCJhIjoiY2wwY2hmNG9mMDF4ajNqbXVocTVtaTJhdSJ9.-ESQzyFEAYCwX9z5pThA2w"
+let publicToken = "pk.eyJ1IjoiZXJpa29yamVoYWciLCJhIjoiY2wwY2hmNG9mMDF4ajNqbXVocTVtaTJhdSJ9.-ESQzyFEAYCwX9z5pThA2w"
 
-L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v9/tiles/{z}/{x}/{y}?access_token=${token}`, {
+L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v9/tiles/{z}/{x}/{y}?access_token=${publicToken}`, {
     maxNativeZoom: 18, maxZoom: 22
 }).addTo(map);
 
@@ -396,6 +409,7 @@ function getDroppedJsonFile(event, callbacks) {
                 let file = item.getAsFile();
                 if (!(file.name in callbacks)) {
                     console.error(`No callback for file ${file.name}`);
+                    alert(`Do not recognize "${file.name}" please drop "${RANGE_COORDS_FILE_NAME}" or "${COVERAGE_AREAS_FILE_NAME}" instead!`);
                 } else {
                     let callback = callbacks[file.name];
                     let read = new FileReader();
